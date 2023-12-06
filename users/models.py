@@ -10,7 +10,7 @@ class User(AbstractUser):
     username = None
     phone = models.CharField(max_length=35, verbose_name='телефон', **NULLABLE)
     email = models.EmailField(unique=True, verbose_name='почта')
-    city = models.CharField(max_length=100, verbose_name='город')
+    city = models.CharField(max_length=100, verbose_name='город', **NULLABLE)
     uid = models.UUIDField(default=uuid.uuid4, editable=False)
     image = models.ImageField(upload_to='users', verbose_name='аватар', **NULLABLE)
 
