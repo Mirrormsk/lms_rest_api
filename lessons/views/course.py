@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from lessons.serializers import CourseSerializer
+from lessons.serializers.lesson import CourseSerializer
 from lessons.models import Course
 
 

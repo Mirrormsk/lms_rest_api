@@ -1,7 +1,7 @@
 from rest_framework import generics
 
 from lessons.models import Lesson
-from lessons.serializers import LessonSerializer
+from lessons.serializers.lesson import LessonSerializer
 
 
 class LessonListView(generics.ListAPIView):
