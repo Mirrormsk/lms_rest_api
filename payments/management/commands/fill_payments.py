@@ -40,7 +40,7 @@ class Command(BaseCommand):
             payment = Payment(
                 user=random.choice(users),
                 amount=self.generate_amount(),
-                type=random.choice(Payment.TYPES),
+                method=random.choice(Payment.METHODS)[0],
                 **product_choice,
             )
             payment.save()

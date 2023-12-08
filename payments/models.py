@@ -10,12 +10,12 @@ from users.models import NULLABLE
 
 
 class Payment(models.Model):
-    TYPE_CASH = 'cash'
-    TYPE_TRANSFER_TO_ACCOUNT = 'started'
+    METHOD_CASH = 'cash'
+    METHOD_TRANSFER_TO_ACCOUNT = 'account'
 
-    TYPES = (
-        (TYPE_CASH, 'Наличные'),
-        (TYPE_TRANSFER_TO_ACCOUNT, 'Перевод на счет'),
+    METHODS = (
+        (METHOD_CASH, 'Наличные'),
+        (METHOD_TRANSFER_TO_ACCOUNT, 'Перевод на счет'),
     )
 
     user = models.ForeignKey('users.User', on_delete=models.DO_NOTHING, verbose_name='студент')
@@ -23,7 +23,7 @@ class Payment(models.Model):
     course = models.ForeignKey('lessons.Course', on_delete=models.PROTECT, **NULLABLE)
     lesson = models.ForeignKey('lessons.Lesson', on_delete=models.PROTECT, **NULLABLE)
     amount = models.PositiveIntegerField(verbose_name='сумма')
-    type = models.CharField(max_length=30, choices=TYPES, verbose_name='тип')
+    method = models.CharField(max_length=30, choices=METHODS, verbose_name='метод')
 
     class Meta:
         verbose_name = 'платеж'
