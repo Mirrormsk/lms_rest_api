@@ -1,10 +1,15 @@
 from rest_framework import serializers
-from lessons.models import Lesson
-from lessons.serializers.course import CourseSerializer
+from lessons.models import Lesson, Course
+
+
+class CourseNameOnlySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['title']
 
 
 class LessonSerializer(serializers.ModelSerializer):
-    in_courses = CourseSerializer(many=True, read_only=True, source='course_set')
+    in_courses = CourseNameOnlySerializer(many=True, read_only=True, source='course_set')
 
     class Meta:
         model = Lesson
