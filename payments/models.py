@@ -2,12 +2,6 @@ from django.db import models
 
 from users.models import NULLABLE
 
-# пользователь,
-# дата оплаты,
-# оплаченный курс или урок,
-# сумма оплаты,
-# способ оплаты: наличные или перевод на счет.
-
 
 class Payment(models.Model):
     METHOD_CASH = 'cash'
