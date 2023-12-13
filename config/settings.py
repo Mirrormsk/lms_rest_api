@@ -1,8 +1,8 @@
 import os
 from datetime import timedelta
+from pathlib import Path
 
 import environ
-from pathlib import Path
 
 env = environ.Env(
     DEBUG=(bool, False)
@@ -28,7 +28,7 @@ INSTALLED_APPS = [
 
     "rest_framework",
     "django_filters",
-    "rest_framework_simplejwt"
+    "rest_framework_simplejwt",
 
     "users",
     "lessons",
@@ -107,7 +107,10 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
 }
 
 SIMPLE_JWT = {
