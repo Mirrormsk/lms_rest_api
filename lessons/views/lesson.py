@@ -14,6 +14,7 @@ class LessonListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = LessonPagination
 
+
     def get_queryset(self):
         user = self.request.user
 
