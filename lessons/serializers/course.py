@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from lessons.models import Course, Lesson
+from lessons.validators import AllowedLinksValidator
 
 
 class LessonInCourseSerializer(serializers.ModelSerializer):
@@ -16,4 +17,13 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ("id", "owner", "lessons_count", "title", "description", "preview", "lessons")
+        fields = (
+            "id",
+            "owner",
+            "lessons_count",
+            "title",
+            "description",
+            "preview",
+            "lessons",
+        )
+        validators = [AllowedLinksValidator(field="description")]
