@@ -28,3 +28,9 @@ python3 manage.py fill_users 10
 ```bash
 python3 manage.py fill_payments 30
 ```
+
+
+Создание группы "moderators" и тестового модератора:
+```bash
+python3 manage.py load_groups
+```
