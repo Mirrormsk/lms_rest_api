@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from lessons.models import Lesson, Course
+from lessons.validators import AllowedLinksValidator
 
 
 class CourseNameOnlySerializer(serializers.ModelSerializer):
@@ -14,4 +15,6 @@ class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = '__all__'
+        validators = [AllowedLinksValidator(field='description')]
+
 
