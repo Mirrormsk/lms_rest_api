@@ -26,7 +26,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Course.objects.none()
 
-        if user_in_group(user, 'moderators'):
+        if user_in_group(user, group_name='moderators'):
             return Course.objects.all()
 
         return Course.objects.filter(owner=user)
