@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from lessons.serializers.course import CourseSerializer
 from lessons.models import Course, Lesson
 from lessons.permissions import IsModerator, IsOwner
+from lessons.services import user_in_group
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -15,6 +16,20 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if not user.is_authenticated:
+            return Course.objects.none()
+
+        if user_in_group(user, 'moderators'):
+            return Course.objects.all()
+
+        return Course.objects.filter(owner=user)
 
     @action(detail=True, methods=["post"])
     def add_lesson(self, request, pk=None):
@@ -37,7 +52,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         match self.action:
             case "list" | "retrieve":
-                permission_classes = [IsAuthenticated]
+                permission_classes = [IsAuthenticated, IsOwner | IsModerator]
             case "create":
                 permission_classes = [IsAuthenticated, ~IsModerator]
             case "update" | "partial_update":
