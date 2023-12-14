@@ -5,23 +5,23 @@ from rest_framework.response import Response
 
 from lessons.serializers.course import CourseSerializer
 from lessons.models import Course, Lesson
+from lessons.permissions import IsModerator, IsOwner
 
 
 class CourseViewSet(viewsets.ModelViewSet):
     """
-    ViewSet from Course model
+    ViewSet for Course model
     """
 
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=["post"])
     def add_lesson(self, request, pk=None):
         course = self.get_object()
         lesson_id = request.data.get("lesson_id")
 
-        if lesson_id and lesson_id in Lesson.objects.values_list('pk', flat=True):
+        if lesson_id and lesson_id in Lesson.objects.values_list("pk", flat=True):
 
             lesson = Lesson.objects.get(pk=lesson_id)
             course.lessons.add(lesson)
@@ -33,3 +33,18 @@ class CourseViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         return Response({"detail": "Invalid lesson ID"}, status=400)
+
+    def get_permissions(self):
+        match self.action:
+            case "list" | "retrieve":
+                permission_classes = [IsAuthenticated]
+            case "create":
+                permission_classes = [IsAuthenticated, ~IsModerator]
+            case "update" | "partial_update":
+                permission_classes = [IsAuthenticated, IsOwner | IsModerator]
+            case "destroy":
+                permission_classes = [IsAuthenticated, IsOwner]
+            case _:
+                permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
