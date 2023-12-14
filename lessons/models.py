@@ -15,6 +15,7 @@ class Lesson(models.Model):
     class Meta:
         verbose_name = "урок"
         verbose_name_plural = "уроки"
+        ordering = ("pk",)
 
     def __str__(self):
         return self.title
@@ -32,6 +33,7 @@ class Course(models.Model):
     class Meta:
         verbose_name = "курс"
         verbose_name_plural = "курсы"
+        ordering = ("pk",)
 
     def __str__(self):
         return self.title
