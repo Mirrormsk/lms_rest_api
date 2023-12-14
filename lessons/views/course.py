@@ -36,7 +36,12 @@ class CourseViewSet(viewsets.ModelViewSet):
         course = self.get_object()
         lesson_id = request.data.get("lesson_id")
 
-        if lesson_id and lesson_id in Lesson.objects.values_list("pk", flat=True):
+        if user_in_group(request.user, group_name='moderators'):
+            lessons = Lesson.objects.all()
+        else:
+            lessons = Lesson.objects.filter(owner=request.user)
+
+        if lesson_id and lesson_id in lessons.values_list("pk", flat=True):
 
             lesson = Lesson.objects.get(pk=lesson_id)
             course.lessons.add(lesson)
