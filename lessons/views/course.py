@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from lessons.paginators import CoursePagination
 from lessons.serializers.course import CourseSerializer
 from lessons.models import Course, Lesson
 from lessons.permissions import IsModerator, IsOwner
@@ -16,6 +17,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
+    pagination_class = CoursePagination
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -27,9 +29,9 @@ class CourseViewSet(viewsets.ModelViewSet):
             return Course.objects.none()
 
         if user_in_group(user, group_name='moderators'):
-            return Course.objects.all()
+            return Course.objects.prefetch_related('lessons').all()
 
-        return Course.objects.filter(owner=user)
+        return Course.objects.prefetch_related('lessons').filter(owner=user)
 
     @action(detail=True, methods=["post"])
     def add_lesson(self, request, pk=None):

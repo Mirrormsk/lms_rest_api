@@ -23,7 +23,7 @@ class LessonListView(generics.ListAPIView):
         if user_in_group(user, group_name="moderators"):
             return Lesson.objects.prefetch_related("course_set").all()
 
-        return Lesson.objects.filter(owner=user)
+        return Lesson.objects.prefetch_related("course_set").filter(owner=user)
 
 
 class LessonCreateView(generics.CreateAPIView):
