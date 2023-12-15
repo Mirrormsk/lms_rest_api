@@ -37,3 +37,16 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Subscribe(models.Model):
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True, verbose_name="активна")
+
+    class Meta:
+        verbose_name = "подписка"
+        verbose_name_plural = "подписки"
+
+    def __str__(self):
+        return f"Subscribe to {self.course} for {self.user}"
