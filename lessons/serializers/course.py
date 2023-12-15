@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from lessons.models import Course, Lesson
+from lessons.models import Course, Lesson, Subscribe
 from lessons.validators import AllowedLinksValidator
 
 
@@ -14,6 +14,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     lessons_count = serializers.IntegerField(read_only=True, source="lessons.count")
     lessons = LessonInCourseSerializer(many=True, read_only=True)
+    is_subscribe_active = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Course
@@ -25,5 +26,13 @@ class CourseSerializer(serializers.ModelSerializer):
             "description",
             "preview",
             "lessons",
+            "is_subscribe_active",
+
         )
         validators = [AllowedLinksValidator(field="description")]
+
+    def get_is_subscribe_active(self, instance):
+        user = self.context["request"].user
+        if user.is_authenticated:
+            return Subscribe.objects.filter(user=user, course=instance, is_active=True).exists()
+        return False
