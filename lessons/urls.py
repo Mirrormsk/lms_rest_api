@@ -14,4 +14,5 @@ urlpatterns = [
     path('lessons/<int:pk>/update/', lesson.LessonUpdateView.as_view(), name='lesson-update'),
     path('lessons/<int:pk>/delete/', lesson.LessonDeleteView.as_view(), name='lesson-delete'),
     path('subscription/create/', subscription.SubscriptionCreateAPIView.as_view(), name='subscription-create'),
+    path('subscription/<int:pk>/delete/', subscription.SubscriptionDeleteAPIView.as_view(), name='subscription-delete'),
 ] + router.urls
