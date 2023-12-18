@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APITransactionTestCase
 
-from lessons.models import Lesson
+from lessons.models import Lesson, Course
 from users.models import User
 
 
@@ -122,3 +122,11 @@ class LessonsTestCase(APITransactionTestCase):
         lesson_data_response = self.client.get(reverse("lessons:lesson-detail", args=[1]))
         self.assertEqual(lesson_data_response.status_code, status.HTTP_200_OK)
         self.assertEqual(lesson_data_response.data["title"], "Lesson 1")
+
+
+class SubscriberTests(APITestCase):
+    def setUp(self):
+        self.user1 = User.objects.create(email="test@test.com", password="Password1234")
+        self.course1 = Course.objects.create(title="Test course", description="Test course description")
+    # def test_subscribe(self):
+    #     subscribe =
