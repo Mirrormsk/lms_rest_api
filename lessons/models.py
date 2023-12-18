@@ -39,7 +39,7 @@ class Course(models.Model):
         return self.title
 
 
-class Subscribe(models.Model):
+class Subscription(models.Model):
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True, verbose_name="активна")
@@ -49,4 +49,4 @@ class Subscribe(models.Model):
         verbose_name_plural = "подписки"
 
     def __str__(self):
-        return f"Subscribe to {self.course} for {self.user}"
+        return f"Subscription to {self.course} for {self.user}"
