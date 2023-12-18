@@ -89,3 +89,36 @@ class LessonsTestCase(APITransactionTestCase):
         self.assertEqual(
             try_to_get_deleted_lesson.status_code, status.HTTP_404_NOT_FOUND
         )
+
+    def test_4_update_lesson(self):
+        self.client.force_authenticate(user=self.user1)
+
+        # Creating new lesson
+        new_lesson_data = {"title": "Lesson New", "description": "Lesson New"}
+        response = self.client.post(self.lesson_create_url, new_lesson_data)
+        new_lesson_id = response.data["id"]
+
+        # The user cannot update someone else's own lesson
+        self.client.force_authenticate(user=self.user2)
+        try_to_update_created_lesson = self.client.patch(
+            reverse("lessons:lesson-update", args=[new_lesson_id]),
+            data={"description": "Updated lesson description"},
+        )
+        self.assertEqual(
+            try_to_update_created_lesson.status_code, status.HTTP_403_FORBIDDEN
+        )
+
+        # Owner can update lesson
+        self.client.force_authenticate(user=self.user1)
+        try_to_update_created_lesson = self.client.patch(
+            reverse("lessons:lesson-update", args=[new_lesson_id]),
+            data={"description": "Updated lesson description"},
+        )
+        self.assertEqual(try_to_update_created_lesson.status_code, status.HTTP_200_OK)
+        self.assertEqual(try_to_update_created_lesson.data["description"], "Updated lesson description")
+
+    def test_5_lesson_detail(self):
+        self.client.force_authenticate(user=self.user1)
+        lesson_data_response = self.client.get(reverse("lessons:lesson-detail", args=[1]))
+        self.assertEqual(lesson_data_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(lesson_data_response.data["title"], "Lesson 1")
