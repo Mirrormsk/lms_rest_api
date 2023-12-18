@@ -1,9 +1,11 @@
+from django.contrib.auth.models import Group
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APITransactionTestCase
 
 from lessons.models import Lesson, Course, Subscription
 from users.models import User
+
 
 
 class LessonsTestCase(APITransactionTestCase):
@@ -127,6 +129,20 @@ class LessonsTestCase(APITransactionTestCase):
         )
         self.assertEqual(lesson_data_response.status_code, status.HTTP_200_OK)
         self.assertEqual(lesson_data_response.data["title"], "Lesson 1")
+
+    def test_6_get_lesson_unauthorized(self):
+        response = self.client.get(reverse("lessons:lesson-list"))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_7_get_lesson_by_moderator(self):
+        moderators_group, _ = Group.objects.get_or_create(name="moderators")
+        self.user1.groups.add(moderators_group)
+        self.user1.save()
+
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(reverse("lessons:lesson-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 2)
 
 
 class SubscriptionTests(APITestCase):
