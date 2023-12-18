@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from lessons.models import Course, Lesson, Subscribe
+from lessons.models import Course, Lesson, Subscription
 from lessons.validators import AllowedLinksValidator
 
 
@@ -34,5 +34,5 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_is_subscribe_active(self, instance):
         user = self.context["request"].user
         if user.is_authenticated:
-            return Subscribe.objects.filter(user=user, course=instance, is_active=True).exists()
+            return Subscription.objects.filter(user=user, course=instance, is_active=True).exists()
         return False
