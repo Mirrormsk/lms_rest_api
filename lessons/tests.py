@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APITransactionTestCase
 
-from lessons.models import Lesson, Course
+from lessons.models import Lesson, Course, Subscription
 from users.models import User
 
 
@@ -115,18 +115,45 @@ class LessonsTestCase(APITransactionTestCase):
             data={"description": "Updated lesson description"},
         )
         self.assertEqual(try_to_update_created_lesson.status_code, status.HTTP_200_OK)
-        self.assertEqual(try_to_update_created_lesson.data["description"], "Updated lesson description")
+        self.assertEqual(
+            try_to_update_created_lesson.data["description"],
+            "Updated lesson description",
+        )
 
     def test_5_lesson_detail(self):
         self.client.force_authenticate(user=self.user1)
-        lesson_data_response = self.client.get(reverse("lessons:lesson-detail", args=[1]))
+        lesson_data_response = self.client.get(
+            reverse("lessons:lesson-detail", args=[1])
+        )
         self.assertEqual(lesson_data_response.status_code, status.HTTP_200_OK)
         self.assertEqual(lesson_data_response.data["title"], "Lesson 1")
 
 
-class SubscriberTests(APITestCase):
+class SubscriptionTests(APITestCase):
     def setUp(self):
         self.user1 = User.objects.create(email="test@test.com", password="Password1234")
-        self.course1 = Course.objects.create(title="Test course", description="Test course description")
-    # def test_subscribe(self):
-    #     subscribe =
+        self.course1 = Course.objects.create(
+            title="Test course", description="Test course description"
+        )
+
+    def test_1_add_subscription(self):
+        self.client.force_authenticate(user=self.user1)
+        data = {"user": self.user1.id, "course": self.course1.id}
+        new_subscription_response = self.client.post(
+            reverse("lessons:subscription-create"), data=data
+        )
+        self.assertEqual(new_subscription_response.status_code, status.HTTP_201_CREATED)
+
+    def test_2_destroy_subscription(self):
+        self.client.force_authenticate(user=self.user1)
+
+        data = {"user": self.user1.id, "course": self.course1.id}
+        new_subscription_response = self.client.post(
+            reverse("lessons:subscription-create"), data=data
+        )
+        new_subscription_id = new_subscription_response.data["id"]
+        deleted_subscription_response = self.client.delete(
+            reverse("lessons:subscription-delete", args=[new_subscription_id])
+        )
+        self.assertEqual(deleted_subscription_response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(Subscription.objects.filter(is_active=True)), 0)
