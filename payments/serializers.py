@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from lessons.models import Lesson, Course
 from payments.models import Payment
+from payments.validators import has_lesson_xor_course_validator
 from users.models import User
 
 
@@ -20,5 +21,11 @@ class PaymentSerializer(serializers.ModelSerializer):
 class PaymentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = "__all__"
+        fields = ('user', 'method', 'lesson', 'course', 'amount')
+        validators = [has_lesson_xor_course_validator]
 
+
+class PaymentCheckStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ('pk',)
