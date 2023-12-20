@@ -1,3 +1,5 @@
+from typing import Literal
+
 import environ
 import stripe
 from rest_framework import status
@@ -5,7 +7,7 @@ from rest_framework.response import Response
 from stripe import Product, Price
 from stripe.checkout import Session
 
-from payments.models import Payment
+from payments.models import Payment, PaymentSession
 from payments.serializers import PaymentSerializer
 
 env = environ.Env(DEBUG=(bool, False))
@@ -67,17 +69,32 @@ class PaymentService:
     @staticmethod
     def process_payment(payment: Payment) -> Response:
         """Processing payment"""
+        payment_data = PaymentSerializer(payment)
+
         match payment.method:
 
             case Payment.METHOD_CASH:
+                payment.is_paid = True
+                payment.save()
+
                 return Response(
-                    {"status": "success"},
+                    {
+                        "status": "success",
+                        "payment_session_id": None,
+                        "checkout_url": None,
+                        "payment": payment_data.data,
+                    },
                     status=status.HTTP_201_CREATED,
                 )
 
             case Payment.METHOD_TRANSFER_TO_ACCOUNT:
                 payment_session = StripeApiClient.execute_payment(payment)
-                payment_data = PaymentSerializer(payment)
+
+                session_obj = PaymentSession.objects.create(
+                    payment=payment, session_id=payment_session.id
+                )
+                session_obj.save()
+
                 return Response(
                     {
                         "status": "success",
@@ -87,3 +104,33 @@ class PaymentService:
                     },
                     status=status.HTTP_201_CREATED,
                 )
+
+    @staticmethod
+    def get_payment_status(
+        payment: Payment,
+    ) -> Literal["complete", "expired", "open"] | None:
+        session_id = payment.session.session_id
+        session = StripeApiClient.retrieve_session(session_id)
+        session_status = session.status
+        return session_status
+
+    @classmethod
+    def update_payment_status(cls, payment: Payment) -> Response:
+        payment_data = PaymentSerializer(payment).data
+
+        if payment.is_paid or payment.method == Payment.METHOD_CASH:
+            return Response(payment_data, status=status.HTTP_200_OK)
+
+        try:
+            payment_session_status = cls.get_payment_status(payment)
+        except Payment.session.RelatedObjectDoesNotExist:
+            return Response(
+                {"status": "failed", "message": "Can't find session for this payment"},
+                status=status.HTTP_206_PARTIAL_CONTENT,
+            )
+        else:
+            if payment_session_status == "complete":
+                payment.is_paid = True
+                payment.save()
+                payment_data = PaymentSerializer(payment).data
+                return Response(payment_data, status=status.HTTP_200_OK)
