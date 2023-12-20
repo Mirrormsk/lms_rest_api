@@ -18,6 +18,7 @@ class Payment(models.Model):
     lesson = models.ForeignKey('lessons.Lesson', on_delete=models.PROTECT, **NULLABLE)
     amount = models.PositiveIntegerField(verbose_name='сумма')
     method = models.CharField(max_length=30, choices=METHODS, verbose_name='метод')
+    is_paid = models.BooleanField(default=False, verbose_name='оплачен')
 
     class Meta:
         verbose_name = 'платеж'
