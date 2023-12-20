@@ -4,7 +4,6 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
 from payments.models import Payment
@@ -13,7 +12,7 @@ from payments.serializers import (
     PaymentCreateSerializer,
     PaymentCheckStatusSerializer,
 )
-from payments.services import StripeApiClient, PaymentService
+from payments.services import PaymentService
 
 
 class PaymentListAPIView(generics.ListAPIView):
@@ -34,15 +33,88 @@ class PaymentCreateView(APIView):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                "user": openapi.Schema(type=openapi.TYPE_INTEGER, description="User ID"),
-                "lesson": openapi.Schema(type=openapi.TYPE_INTEGER, description="Lesson ID"),
-                "course": openapi.Schema(type=openapi.TYPE_INTEGER, description="Course ID"),
-                "method": openapi.Schema(type=openapi.TYPE_STRING, enum=["cash", "account"], description="Payment method"),
-                "amount": openapi.Schema(type=openapi.TYPE_INTEGER, description="Amount"),
+                "user": openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description="User ID"
+                ),
+                "lesson": openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description="Lesson ID"
+                ),
+                "course": openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description="Course ID"
+                ),
+                "method": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=["cash", "account"],
+                    description="Payment method",
+                ),
+                "amount": openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description="Amount"
+                ),
             },
-            required=["user",  "method", "amount"],
-
-            )
+            required=["user", "method", "amount"],
+        ),
+        responses={
+            200: openapi.Response(
+                description="Payment status",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "status": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Status of the payment",
+                        ),
+                        "payment_session_id": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Payment session ID"
+                        ),
+                        "checkout_url": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Checkout URL"
+                        ),
+                        "payment": openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                "id": openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, description="Payment ID"
+                                ),
+                                "user": openapi.Schema(
+                                    type=openapi.TYPE_STRING, description="User email"
+                                ),
+                                "lesson": openapi.Schema(
+                                    type=openapi.TYPE_STRING, description="Lesson title"
+                                ),
+                                "course": openapi.Schema(
+                                    type=openapi.TYPE_STRING, description="Course title"
+                                ),
+                                "method": openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    description="Payment method",
+                                ),
+                                "created_at": openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    description="Payment creation timestamp",
+                                ),
+                                "amount": openapi.Schema(
+                                    type=openapi.TYPE_NUMBER,
+                                    description="Payment amount",
+                                ),
+                                "is_paid": openapi.Schema(
+                                    type=openapi.TYPE_BOOLEAN,
+                                    description="Is payment paid",
+                                ),
+                            },
+                            required=[
+                                "id",
+                                "user",
+                                "method",
+                                "created_at",
+                                "amount",
+                                "is_paid",
+                            ],
+                        ),
+                    },
+                ),
+            ),
+        },
     )
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -69,12 +141,16 @@ class PaymentCheckStatusAPIView(APIView):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'payment_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Payment id')
-            }
+                "payment_id": openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description="Payment id"
+                )
+            },
         ),
         responses={
-            status.HTTP_200_OK: openapi.Response(description="Payment info", schema=PaymentSerializer)
-        }
+            status.HTTP_200_OK: openapi.Response(
+                description="Payment info", schema=PaymentSerializer
+            )
+        },
     )
     def post(self, request, *args, **kwargs):
         payment_id = request.data.get("payment_id")
