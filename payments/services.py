@@ -131,6 +131,7 @@ class PaymentService:
         else:
             if payment_session_status == "complete":
                 payment.is_paid = True
+                payment.session.delete()
                 payment.save()
-                payment_data = PaymentSerializer(payment).data
-                return Response(payment_data, status=status.HTTP_200_OK)
+            payment_data = PaymentSerializer(payment).data
+            return Response(payment_data, status=status.HTTP_200_OK)
