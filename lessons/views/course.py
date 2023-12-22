@@ -8,6 +8,7 @@ from lessons.serializers.course import CourseSerializer
 from lessons.models import Course, Lesson
 from lessons.permissions import IsModerator, IsOwner
 from lessons.services import user_in_group
+from lessons.tasks import inform_subscribers_about_update_task
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -52,6 +53,8 @@ class CourseViewSet(viewsets.ModelViewSet):
             course.save()
 
             serializer = self.get_serializer(course)
+
+            inform_subscribers_about_update_task.delay(course.id)
             return Response(serializer.data)
 
         return Response({"detail": "Invalid lesson ID"}, status=400)
