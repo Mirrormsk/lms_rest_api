@@ -6,6 +6,7 @@ from lessons.paginators import LessonPagination
 from lessons.permissions import IsModerator, IsOwner
 from lessons.serializers.lesson import LessonSerializer
 from lessons.services import user_in_group
+from lessons.tasks import inform_subscribers_about_update_task
 
 
 class LessonListView(generics.ListAPIView):
@@ -45,6 +46,12 @@ class LessonUpdateView(generics.UpdateAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated, IsOwner]
+
+    def perform_update(self, serializer):
+        lesson = serializer.save()
+        courses = lesson.course_set.all()
+        for course in courses:
+            inform_subscribers_about_update_task.delay(course.id)
 
 
 class LessonDeleteView(generics.DestroyAPIView):
