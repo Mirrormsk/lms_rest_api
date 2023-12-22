@@ -153,7 +153,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BEAT_SCHEDULE = {
     'task-name': {
         'task': 'users.tasks.deactivate_inactive_users_task',
-        'schedule': crontab(hour='12', minute='23')
+        'schedule': crontab(hour='06', minute='00')
     },
 }
 # LOGGING = {
