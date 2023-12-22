@@ -1,4 +1,5 @@
 import logging
+import datetime
 from smtplib import SMTPException
 
 from django.conf import settings
@@ -15,7 +16,7 @@ def user_in_group(user: User, group_name: str) -> bool:
     return user.groups.filter(name=group_name).exists()
 
 
-def send_course_updated_email(course: Course, email: str):
+def send_course_updated_email(course: Course, email: str) -> None:
 
     subject = f"You have new updates for {course.title}"
     message = f"Course {course.title} was updated. Please check the details below."
@@ -35,7 +36,7 @@ def send_course_updated_email(course: Course, email: str):
         logger.exception(f"Error sending mail to {email}: {ex}")
 
 
-def get_subscribers_emails_from_course(course: Course):
+def get_subscribers_emails_from_course(course: Course) -> QuerySet:
     subscribers: QuerySet = Subscription.objects.filter(course=course, is_active=True)
 
     if not subscribers.exists():
@@ -50,9 +51,8 @@ def get_subscribers_emails_from_course(course: Course):
     return subscriber_emails
 
 
-def inform_subscribers_about_update(course_id: int):
+def inform_subscribers_about_update(course_id: int) -> None:
     course: Course = Course.objects.get(id=course_id)
     subscriber_emails = get_subscribers_emails_from_course(course)
-
     for email in subscriber_emails:
         send_course_updated_email(course, email)
