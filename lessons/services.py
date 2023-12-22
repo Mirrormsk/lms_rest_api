@@ -36,7 +36,7 @@ def send_course_updated_email(course: Course, email: str):
 
 
 def get_subscribers_emails_from_course(course: Course):
-    subscribers: QuerySet = Subscription.objects.filter(course=course)
+    subscribers: QuerySet = Subscription.objects.filter(course=course, is_active=True)
 
     if not subscribers.exists():
         return None
