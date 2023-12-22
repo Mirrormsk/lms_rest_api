@@ -34,3 +34,9 @@ python3 manage.py fill_payments 30
 ```bash
 python3 manage.py load_groups
 ```
+
+
+Запуск celery и периодических задач:
+```bash
+make run-celery-and-beat
+```
