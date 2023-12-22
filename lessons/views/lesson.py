@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
@@ -51,8 +53,10 @@ class LessonUpdateView(generics.UpdateAPIView):
         lesson = serializer.save()
         courses = lesson.course_set.all()
         for course in courses:
+            now = datetime.datetime.now(datetime.UTC)
+            if now - course.updated_at > datetime.timedelta(hours=4):
+                inform_subscribers_about_update_task.delay(course.id)
             course.save()
-            inform_subscribers_about_update_task.delay(course.id)
 
 
 class LessonDeleteView(generics.DestroyAPIView):
