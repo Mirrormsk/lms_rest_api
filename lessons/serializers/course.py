@@ -27,7 +27,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "preview",
             "lessons",
             "is_subscribe_active",
-
+            "updated_at",
         )
         validators = [AllowedLinksValidator(field="description")]
 
