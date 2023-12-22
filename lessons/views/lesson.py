@@ -51,6 +51,7 @@ class LessonUpdateView(generics.UpdateAPIView):
         lesson = serializer.save()
         courses = lesson.course_set.all()
         for course in courses:
+            course.save()
             inform_subscribers_about_update_task.delay(course.id)
 
 
