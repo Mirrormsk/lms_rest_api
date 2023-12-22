@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -50,11 +52,14 @@ class CourseViewSet(viewsets.ModelViewSet):
             course.lessons.add(lesson)
 
             course.lessons_count = course.lessons.count()
-            course.save()
 
             serializer = self.get_serializer(course)
 
-            inform_subscribers_about_update_task.delay(course.id)
+            now = datetime.datetime.now(datetime.UTC)
+            if now - course.updated_at > datetime.timedelta(hours=4):
+                inform_subscribers_about_update_task.delay(course.id)
+
+            course.save()
             return Response(serializer.data)
 
         return Response({"detail": "Invalid lesson ID"}, status=400)
