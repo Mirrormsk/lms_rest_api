@@ -4,8 +4,9 @@ from smtplib import SMTPException
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.db.models import QuerySet
 
-from lessons.models import Lesson
+from lessons.models import Subscription, Course
 
 logger = logging.getLogger(__name__)
 
@@ -14,13 +15,12 @@ def user_in_group(user: User, group_name: str) -> bool:
     return user.groups.filter(name=group_name).exists()
 
 
-def send_lesson_updated_email(lesson: Lesson, user: User):
-    user_email = user.email
+def send_course_updated_email(course: Course, email: str):
 
-    subject = f"You have new updates for {lesson.title}"
-    message = f"Lesson {lesson.title} was updated. Please check the details below."
+    subject = f"You have new updates for {course.title}"
+    message = f"Course {course.title} was updated. Please check the details below."
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = [user_email]
+    recipient_list = [email]
 
     try:
         send_mail(
@@ -30,5 +30,29 @@ def send_lesson_updated_email(lesson: Lesson, user: User):
             recipient_list=recipient_list,
             fail_silently=False,
         )
+        print("email sent")
     except SMTPException as ex:
-        logger.exception(f"Error sending mail to {user_email}: {ex}")
+        logger.exception(f"Error sending mail to {email}: {ex}")
+
+
+def get_subscribers_emails_from_course(course: Course):
+    subscribers: QuerySet = Subscription.objects.filter(course=course)
+
+    if not subscribers.exists():
+        return None
+
+    subscriber_emails = (
+        subscribers
+        .select_related("user")
+        .values_list("user__email", flat=True)
+    ).distinct()
+
+    return subscriber_emails
+
+
+def inform_subscribers_about_update(course_id: int):
+    course: Course = Course.objects.get(id=course_id)
+    subscriber_emails = get_subscribers_emails_from_course(course)
+
+    for email in subscriber_emails:
+        send_course_updated_email(course, email)
