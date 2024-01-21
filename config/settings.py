@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "drf_yasg",
     "django_celery_beat",
+    "corsheaders",
 
     "users",
     "lessons",
@@ -42,6 +43,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -151,11 +153,11 @@ SERVER_EMAIL = EMAIL_HOST_USER
 EMAIL_ADMIN = EMAIL_HOST_USER
 
 
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
-CELERY_TIMEZONE = "Europe/Moscow"
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
+CELERY_TIMEZONE = env('CELERY_TIMEZONE')
+CELERY_TASK_TRACK_STARTED = env('CELERY_TASK_TRACK_STARTED')
+CELERY_TASK_TIME_LIMIT = env('CELERY_TASK_TIME_LIMIT')
 
 CELERY_BEAT_SCHEDULE = {
     'task-name': {
@@ -163,6 +165,18 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour='06', minute='00')
     },
 }
+
+CORS_ALLOWED_ORIGINS = [
+    'http://0.0.0.0',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://0.0.0.0",
+
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+
 # LOGGING = {
 #     'version': 1,
 #     'handlers': {
