@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  db:
+
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  api:
+    command: "gunicorn -w 2 config.wsgi:application -b 0.0.0.0:8000"
+    platform: linux/amd64
+    build:
+      context: .
+    tty: false
+    volumes:
+      - .:/app
+    #      - ./static:/app/static
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    build: ./nginx
+
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    volumes:
+      - ./static:/home/www/static
+
+  redis:
+    image: redis
+    expose:
+      - "6379"
+
+  celery:
+    build: .
+    tty: true
+    command: poetry run celery -A config worker -l INFO
+    depends_on:
+      - redis
+      - api
+
+  celery-beat:
+    build: .
+    tty: true
+    command: poetry run celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      - redis
+      - api
+
+volumes:
+  api:
+  db:
+    driver: local
